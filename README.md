@@ -11,23 +11,25 @@ __Note__: To prevent token scanning attacks, the endpoint MUST also require some
 
 # Installation
 
-Register the service provider `\ArieTimmerman\Laravel\Oauth2\ServiceProvider::class` in `config/app.php`.
+Install the package on your resource server
 
-In `App/Http/Kernel.php`, add `\ArieTimmerman\Laravel\OAuth2\VerifyAccessToken::class` as middleware. This should look like the following.
+~~~
+composer require arietimmerman/laravel-oauth-introspect-middleware
+~~~
 
-~~~.php
-protected $routeMiddleware = [
-	
-	// ...
-	
-    'verifyaccesstoken' => \ArieTimmerman\Laravel\OAuth2\VerifyAccessToken::class,
-    
-    // ...
-    
-];
-~~~    
+and add the Service Provider in your `config/app.php`
 
-In your `.env` file, define the following properties
+~~~
+\ArieTimmerman\Laravel\Oauth2\ServiceProvider::class
+~~~
+
+and add the MiddleWare in your `App/Http/Kernel.php`
+
+~~~
+\ArieTimmerman\Laravel\OAuth2\VerifyAccessToken::class
+~~~  
+
+Finally in your `.env` file, define the following properties
 
 ~~~.properties
 # Url of the authorization server
