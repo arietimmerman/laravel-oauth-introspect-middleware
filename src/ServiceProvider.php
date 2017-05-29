@@ -1,4 +1,7 @@
 <?php
+/**
+ * Laravel ServiceProvider for registering the routes and publishing the configuration.
+ */
 
 namespace ArieTimmerman\Laravel\OAuth2;
 
