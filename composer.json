@@ -1,0 +1,21 @@
+{
+    "name": "arietimmerman/laravel-oauth-introspect-middleware",
+    "description": "Laravel Middleware for letting a resource owner verify a OAuth2 access tokens with a remote authorization server",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Arie Timmerman",
+            "email": "arietimmerman@gmail.com"
+        }
+    ],
+    "require": {
+		"php": "^7.0",
+     	"illuminate/contracts": "~5.4",
+     	"illuminate/support": "~5.4",
+     	"guzzlehttp/guzzle": "~6.0"
+    },
+    "autoload": {
+        "psr-4": {"ArieTimmerman\\Laravel\\OAuth2\\": "src/"}
+    }
+}
