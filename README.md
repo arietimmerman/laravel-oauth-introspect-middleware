@@ -20,7 +20,7 @@ composer require arietimmerman/laravel-oauth-introspect-middleware
 and add the Service Provider in your `config/app.php`
 
 ~~~
-\ArieTimmerman\Laravel\Oauth2\ServiceProvider::class
+\ArieTimmerman\Laravel\OAuth2\ServiceProvider::class
 ~~~
 
 and add the MiddleWare in your `App/Http/Kernel.php`
@@ -28,6 +28,12 @@ and add the MiddleWare in your `App/Http/Kernel.php`
 ~~~
 \ArieTimmerman\Laravel\OAuth2\VerifyAccessToken::class
 ~~~  
+
+publish the configuration
+
+~~~
+php artisan vendor:publish
+~~~
 
 Finally in your `.env` file, define the following properties
 
