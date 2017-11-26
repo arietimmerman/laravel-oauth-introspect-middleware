@@ -11,11 +11,18 @@
     ],
     "require": {
 		"php": "^7.0",
-     	"illuminate/contracts": "~5.4",
-     	"illuminate/support": "~5.4",
-     	"guzzlehttp/guzzle": "~6.0"
+     	"guzzlehttp/guzzle": "~6.0",
+        "laravel/framework": "^5.5"
     },
     "autoload": {
         "psr-4": {"ArieTimmerman\\Laravel\\OAuth2\\": "src/"}
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ArieTimmerman\\Laravel\\OAuth2\\Tests\\": "tests"
+        }
+    },
+    "require-dev": {
+        "orchestra/testbench": "~3.0"
     }
 }
