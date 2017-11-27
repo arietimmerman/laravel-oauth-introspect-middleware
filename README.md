@@ -19,14 +19,22 @@ composer require arietimmerman/laravel-oauth-introspect-middleware
 
 and add the Service Provider in your `config/app.php`
 
-~~~
-\ArieTimmerman\Laravel\OAuth2\ServiceProvider::class
+~~~.php
+'providers' => [
+     // [..]
+    \ArieTimmerman\Laravel\OAuth2\ServiceProvider::class
+     // [..]
+];
 ~~~
 
 and add the MiddleWare in your `App/Http/Kernel.php`
 
-~~~
-\ArieTimmerman\Laravel\OAuth2\VerifyAccessToken::class
+~~~.php
+protected $routeMiddleware = [
+    // [..]
+    'verifyaccesstoken' => \ArieTimmerman\Laravel\OAuth2\VerifyAccessToken::class,
+    // [..]   
+];
 ~~~  
 
 publish the configuration
@@ -52,5 +60,14 @@ AUTHORIZATION_SERVER_INTROSPECT_URL="${AUTHORIZATION_SERVER_URL}/oauth/introspec
 # Optional configuration for requesting an OAuth2 access tokens using the implicit grant flow 
 AUTHORIZATION_SERVER_AUTHORIZATION_URL="${AUTHORIZATION_SERVER_URL}/oauth/authorize"
 AUTHORIZATION_SERVER_REDIRECT_URL=https://my.machine.dom
+~~~
+
+Now, use the middleware.
+
+~~~.php
+Route::group(['middleware'=>'verifyaccesstoken:required-scope1,required-scope2'], function () {
+	Route::get('/endpoint1', 'UserController@index');
+	Route::resource('/resource', 'OrderController');
+});
 ~~~
 

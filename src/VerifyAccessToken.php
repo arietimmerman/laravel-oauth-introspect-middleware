@@ -32,20 +32,20 @@ class VerifyAccessToken {
 	/**
 	 */
 	protected function getIntrospect($accessToken) {
-		$guzzle = $this->getClient ();
+		$guzzle = $this->getClient ();		
 		
 		$response = $guzzle->post ( config ( 'authorizationserver.authorization_server_introspect_url' ), [ 
 				'form_params' => [ 
 						'token_type_hint' => 'access_token',
 						
 						// This is the access token for verifying the user's access token
-						'token' => $this->getAccessToken () 
+						'token' => $accessToken
 				],
 				'headers' => [ 
-						'Authorization' => 'Bearer ' . $accessToken 
+						'Authorization' => 'Bearer ' . $this->getAccessToken ()  
 				] 
 		] );
-		
+
 		return json_decode ( ( string ) $response->getBody (), true );
 	}
 	
@@ -88,9 +88,9 @@ class VerifyAccessToken {
 	 * @param \Closure $next        	
 	 * @return mixed
 	 */
-	public function handle($request, Closure $next, $scopes = null) {
+	public function handle($request, Closure $next, ...$scopes) {
 		$authorization = $request->header ( 'Authorization' );
-		
+	
 		if (strlen ( $authorization ) == 0) {
 			throw new InvalidInputException ( "No Authorization header present" );
 		}
@@ -105,7 +105,6 @@ class VerifyAccessToken {
 		try {
 			
 			$result = $this->getIntrospect ( $receivedAccessToken );
-			
 			if (! $result ['active']) {
 				
 				throw new InvalidAccessTokenException ( "Invalid token!" );
@@ -119,8 +118,8 @@ class VerifyAccessToken {
 				
 				$scopesForToken = \explode ( " ", $result ['scope'] );
 				
-				if (count ( $scopes ) != count ( array_intersect ( $scopes, $scopesForToken ) )) {
-					throw new InvalidAccessTokenException ( "Missing required scopes!" );
+				if ( count($misingScopes = array_diff ( $scopes, $scopesForToken ) ) > 0 ) {
+					throw new InvalidAccessTokenException ( "Missing the following required scopes: " . implode(" ,",$misingScopes) );
 				} else {
 				}
 			}
@@ -128,6 +127,8 @@ class VerifyAccessToken {
 			if ($e->hasResponse ()) {
 				$result = json_decode ( ( string ) $e->getResponse ()->getBody (), true );
 				
+				var_dump($result);exit;
+
 				if (isset ( $result ['error'] )) {
 					throw new InvalidAccessTokenException ( $result ['error'] ['title'] ?? "Invalid token!");
 				} else {

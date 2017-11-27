@@ -12,7 +12,7 @@ Route::get('/redirect', function (Request $request) {
 			'client_id' => config('authorizationserver.authorization_server_client_id'),
 			'redirect_uri' => config('authorizationserver.authorization_server_redirect_url'),
 			'response_type' => 'token',
-			'scope' => '',
+			'scope' => 'place-orders',
 	]);
 
 	return redirect(config('authorizationserver.authorization_server_authorization_url') . '?' . $query);
