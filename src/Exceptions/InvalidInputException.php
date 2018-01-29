@@ -1,7 +1,6 @@
 <?php
+namespace DesignMyNight\Laravel\OAuth2\Exceptions;
 
-namespace ArieTimmerman\Laravel\OAuth2\Exceptions;
-
-class InvalidInputException extends InvalidAccessTokenException{
-    
+class InvalidInputException extends InvalidAccessTokenException
+{
 }
