@@ -7,7 +7,7 @@
         {
             "name": "Steve Porter",
             "email": "steve@designmynight.com"
-        },
+        }
     ],
     "require": {
 		"php": "^7.0",
