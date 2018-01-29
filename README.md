@@ -14,7 +14,7 @@ __Note__: To prevent token scanning attacks, the endpoint MUST also require some
 Install the package on your resource server
 
 ~~~
-composer require arietimmerman/laravel-oauth-introspect-middleware
+composer require designmynight/laravel-oauth-introspect-middleware
 ~~~
 
 and add the Service Provider in your `config/app.php`
