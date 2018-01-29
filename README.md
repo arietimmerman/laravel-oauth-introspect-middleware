@@ -22,7 +22,7 @@ and add the Service Provider in your `config/app.php`
 ~~~.php
 'providers' => [
      // [..]
-    \ArieTimmerman\Laravel\OAuth2\ServiceProvider::class
+    \DesignMyNight\Laravel\OAuth2\ServiceProvider::class
      // [..]
 ];
 ~~~
@@ -32,7 +32,7 @@ and add the MiddleWare in your `App/Http/Kernel.php`
 ~~~.php
 protected $routeMiddleware = [
     // [..]
-    'verifyaccesstoken' => \ArieTimmerman\Laravel\OAuth2\VerifyAccessToken::class,
+    'verifyaccesstoken' => \DesignMyNight\Laravel\OAuth2\VerifyAccessToken::class,
     // [..]   
 ];
 ~~~  
