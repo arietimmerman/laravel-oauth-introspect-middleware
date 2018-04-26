@@ -22,7 +22,7 @@ and add the Service Provider in your `config/app.php`
 ~~~.php
 'providers' => [
      // [..]
-    \DesignMyNight\Laravel\OAuth2\ServiceProvider::class
+    \DesignMyNight\Laravel\OAuth2\IntrospectMiddlewareServiceProvider::class
      // [..]
 ];
 ~~~
