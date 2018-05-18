@@ -36,8 +36,6 @@ class VerifyAccessToken
         $response = $guzzle->post(config('authorizationserver.introspect_url'), [
             'form_params' => [
                 'token_type_hint' => 'access_token',
-
-                // This is the access token for verifying the user's access token
                 'token' => $accessToken,
             ],
             'headers' => [
