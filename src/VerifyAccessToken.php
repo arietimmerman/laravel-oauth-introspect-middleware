@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Cache;
 
 class VerifyAccessToken
 {
+    protected $accessTokenCacheKey = 'access_token';
+
     private $client = null;
 
     private function getClient(): Client
@@ -48,32 +50,33 @@ class VerifyAccessToken
 
     protected function getAccessToken(): string
     {
-        $accessToken = Cache::get('access_token');
+        $accessToken = Cache::get($this->accessTokenCacheKey);
 
-        if (!$accessToken) {
-            $guzzle = $this->getClient();
+        return $accessToken ?: $this->getNewAccessToken();
+    }
 
-            $response = $guzzle->post(config('authorizationserver.token_url'), [
-                'form_params' => [
-                    'grant_type' => 'client_credentials',
-                    'client_id' => config('authorizationserver.client_id'),
-                    'client_secret' => config('authorizationserver.client_secret'),
-                    'scope' => '',
-                ],
-            ]);
+    protected function getNewAccessToken(): string
+    {
+        $response = $this->getClient()->post(config('authorizationserver.token_url'), [
+            'form_params' => [
+                'grant_type' => 'client_credentials',
+                'client_id' => config('authorizationserver.client_id'),
+                'client_secret' => config('authorizationserver.client_secret'),
+                'scope' => '',
+            ],
+        ]);
 
-            $result = json_decode((string) $response->getBody(), true);
+        $result = json_decode((string) $response->getBody(), true);
 
-            if ($result && isset($result['access_token'])) {
-                $accessToken = $result['access_token'];
+        if (isset($result['access_token'])) {
+            $accessToken = $result['access_token'];
 
-                Cache::add('access_token', $accessToken, intVal($result['expires_in']) / 60);
-            } else {
-                throw new InvalidEndpointException('Did not receive an access token');
-            }
+            Cache::add($this->accesstokenCacheKey, $accessToken, intVal($result['expires_in']) / 60);
+
+            return $accessToken;
         }
 
-        return $accessToken;
+        throw new InvalidEndpointException('Did not receive an access token');
     }
 
     /**
