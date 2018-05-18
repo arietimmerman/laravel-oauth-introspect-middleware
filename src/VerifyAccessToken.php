@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Cache;
 
 class VerifyAccessToken
 {
+    protected $accessTokenCacheKey = 'access_token';
+
     private $client = null;
 
     private function getClient(): Client
@@ -31,13 +33,9 @@ class VerifyAccessToken
 
     protected function getIntrospect($accessToken)
     {
-        $guzzle = $this->getClient();
-
-        $response = $guzzle->post(config('authorizationserver.introspect_url'), [
+        $response = $this->getClient()->post(config('authorizationserver.introspect_url'), [
             'form_params' => [
                 'token_type_hint' => 'access_token',
-
-                // This is the access token for verifying the user's access token
                 'token' => $accessToken,
             ],
             'headers' => [
@@ -50,32 +48,33 @@ class VerifyAccessToken
 
     protected function getAccessToken(): string
     {
-        $accessToken = Cache::get('access_token');
+        $accessToken = Cache::get($this->accessTokenCacheKey);
 
-        if (!$accessToken) {
-            $guzzle = $this->getClient();
+        return $accessToken ?: $this->getNewAccessToken();
+    }
 
-            $response = $guzzle->post(config('authorizationserver.token_url'), [
-                'form_params' => [
-                    'grant_type' => 'client_credentials',
-                    'client_id' => config('authorizationserver.client_id'),
-                    'client_secret' => config('authorizationserver.client_secret'),
-                    'scope' => '',
-                ],
-            ]);
+    protected function getNewAccessToken(): string
+    {
+        $response = $this->getClient()->post(config('authorizationserver.token_url'), [
+            'form_params' => [
+                'grant_type' => 'client_credentials',
+                'client_id' => config('authorizationserver.client_id'),
+                'client_secret' => config('authorizationserver.client_secret'),
+                'scope' => '',
+            ],
+        ]);
 
-            $result = json_decode((string) $response->getBody(), true);
+        $result = json_decode((string) $response->getBody(), true);
 
-            if ($result && isset($result['access_token'])) {
-                $accessToken = $result['access_token'];
+        if (isset($result['access_token'])) {
+            $accessToken = $result['access_token'];
 
-                Cache::add('access_token', $accessToken, intVal($result['expires_in']) / 60);
-            } else {
-                throw new InvalidEndpointException('Did not receive an access token');
-            }
+            Cache::add($this->accesstokenCacheKey, $accessToken, intVal($result['expires_in']) / 60);
+
+            return $accessToken;
         }
 
-        return $accessToken;
+        throw new InvalidEndpointException('Did not receive an access token');
     }
 
     /**
@@ -99,39 +98,36 @@ class VerifyAccessToken
             throw new InvalidInputException('No Bearer token in the Authorization header present');
         }
 
-        // Now verify the user provided access token
         try {
             $result = $this->getIntrospect($bearerToken);
+
             if (!$result['active']) {
                 throw new InvalidAccessTokenException('Invalid token!');
-            } else if ($scopes != null) {
+            }
+
+            if ($scopes != null) {
                 if (!\is_array($scopes)) {
-                    $scopes = [
-                        $scopes,
-                    ];
+                    $scopes = [$scopes];
                 }
 
                 $scopesForToken = \explode(' ', $result['scope']);
 
                 if (count($misingScopes = array_diff($scopes, $scopesForToken)) > 0) {
                     throw new InvalidAccessTokenException('Missing the following required scopes: ' . implode(' ,', $misingScopes));
-                } else {
                 }
             }
         } catch (RequestException $e) {
             if ($e->hasResponse()) {
                 $result = json_decode((string) $e->getResponse()->getBody(), true);
 
-                var_dump($result);exit;
-
                 if (isset($result['error'])) {
                     throw new InvalidAccessTokenException($result['error']['title'] ?? 'Invalid token!');
-                } else {
-                    throw new InvalidAccessTokenException('Invalid token!');
                 }
-            } else {
-                throw new InvalidAccessTokenException($e);
+
+                throw new InvalidAccessTokenException('Invalid token!');
             }
+
+            throw new InvalidAccessTokenException($e);
         }
 
         return $next($request);
