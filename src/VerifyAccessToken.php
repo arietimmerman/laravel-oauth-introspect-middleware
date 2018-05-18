@@ -103,9 +103,12 @@ class VerifyAccessToken
         // Now verify the user provided access token
         try {
             $result = $this->getIntrospect($bearerToken);
+
             if (!$result['active']) {
                 throw new InvalidAccessTokenException('Invalid token!');
-            } else if ($scopes != null) {
+            }
+
+            if ($scopes != null) {
                 if (!\is_array($scopes)) {
                     $scopes = [
                         $scopes,
@@ -116,7 +119,6 @@ class VerifyAccessToken
 
                 if (count($misingScopes = array_diff($scopes, $scopesForToken)) > 0) {
                     throw new InvalidAccessTokenException('Missing the following required scopes: ' . implode(' ,', $misingScopes));
-                } else {
                 }
             }
         } catch (RequestException $e) {
@@ -125,12 +127,12 @@ class VerifyAccessToken
 
                 if (isset($result['error'])) {
                     throw new InvalidAccessTokenException($result['error']['title'] ?? 'Invalid token!');
-                } else {
-                    throw new InvalidAccessTokenException('Invalid token!');
                 }
-            } else {
-                throw new InvalidAccessTokenException($e);
+
+                throw new InvalidAccessTokenException('Invalid token!');
             }
+
+            throw new InvalidAccessTokenException($e);
         }
 
         return $next($request);
