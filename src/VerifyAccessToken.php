@@ -33,9 +33,7 @@ class VerifyAccessToken
 
     protected function getIntrospect($accessToken)
     {
-        $guzzle = $this->getClient();
-
-        $response = $guzzle->post(config('authorizationserver.introspect_url'), [
+        $response = $this->getClient()->post(config('authorizationserver.introspect_url'), [
             'form_params' => [
                 'token_type_hint' => 'access_token',
                 'token' => $accessToken,
