@@ -98,7 +98,6 @@ class VerifyAccessToken
             throw new InvalidInputException('No Bearer token in the Authorization header present');
         }
 
-        // Now verify the user provided access token
         try {
             $result = $this->getIntrospect($bearerToken);
 
@@ -108,9 +107,7 @@ class VerifyAccessToken
 
             if ($scopes != null) {
                 if (!\is_array($scopes)) {
-                    $scopes = [
-                        $scopes,
-                    ];
+                    $scopes = [$scopes];
                 }
 
                 $scopesForToken = \explode(' ', $result['scope']);
