@@ -69,7 +69,7 @@ class VerifyAccessToken
         if (isset($result['access_token'])) {
             $accessToken = $result['access_token'];
 
-            Cache::add($this->accesstokenCacheKey, $accessToken, intVal($result['expires_in']) / 60);
+            Cache::add($this->accessTokenCacheKey, $accessToken, intVal($result['expires_in']) / 60);
 
             return $accessToken;
         }
