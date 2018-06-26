@@ -88,7 +88,7 @@ class VerifyAccessToken
                 $result = json_decode((string) $e->getResponse()->getBody(), true);
 
                 if (isset($result['error'])) {
-                    throw new AuthenticationException($result['error']['title']);
+                    throw new AuthenticationException($result['error']['title'] ?? '');
                 }
             }
 
