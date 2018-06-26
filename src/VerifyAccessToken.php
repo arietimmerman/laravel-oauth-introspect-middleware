@@ -115,13 +115,11 @@ class VerifyAccessToken
                 $result = json_decode((string) $e->getResponse()->getBody(), true);
 
                 if (isset($result['error'])) {
-                    throw new AuthenticationException($result['error']['title'] ?? 'Invalid token!');
+                    throw new AuthenticationException($result['error']['title']);
                 }
-
-                throw new AuthenticationException('Invalid token!');
             }
 
-            throw new AuthenticationException($e);
+            throw new AuthenticationException($e->getMessage());
         }
 
         return $next($request);
