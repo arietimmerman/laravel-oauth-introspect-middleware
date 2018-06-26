@@ -2,11 +2,11 @@
 namespace DesignMyNight\Laravel\OAuth2;
 
 use Closure;
-use Illuminate\Auth\AuthenticationException;
-use Laravel\Passport\Exceptions\MissingScopeException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Cache;
+use Laravel\Passport\Exceptions\MissingScopeException;
 
 class VerifyAccessToken
 {
@@ -27,6 +27,13 @@ class VerifyAccessToken
         }
     }
 
+    protected function getAccessToken(): string
+    {
+        $accessToken = Cache::get($this->accessTokenCacheKey);
+
+        return $accessToken ?: $this->getNewAccessToken();
+    }
+
     private function getClient(): Client
     {
         if ($this->client === null) {
@@ -34,13 +41,6 @@ class VerifyAccessToken
         }
 
         return $this->client;
-    }
-
-    public function setClient(Client $client): self
-    {
-        $this->client = $client;
-
-        return $this;
     }
 
     protected function getIntrospect($accessToken)
@@ -56,37 +56,6 @@ class VerifyAccessToken
         ]);
 
         return json_decode((string) $response->getBody(), true);
-    }
-
-    protected function getAccessToken(): string
-    {
-        $accessToken = Cache::get($this->accessTokenCacheKey);
-
-        return $accessToken ?: $this->getNewAccessToken();
-    }
-
-    protected function getNewAccessToken(): string
-    {
-        $response = $this->getClient()->post(config('authorizationserver.token_url'), [
-            'form_params' => [
-                'grant_type' => 'client_credentials',
-                'client_id' => config('authorizationserver.client_id'),
-                'client_secret' => config('authorizationserver.client_secret'),
-                'scope' => '',
-            ],
-        ]);
-
-        $result = json_decode((string) $response->getBody(), true);
-
-        if (isset($result['access_token'])) {
-            $accessToken = $result['access_token'];
-
-            Cache::add($this->accessTokenCacheKey, $accessToken, intVal($result['expires_in']) / 60);
-
-            return $accessToken;
-        }
-
-        throw new AuthenticationException('Did not receive an access token');
     }
 
     /**
@@ -127,5 +96,36 @@ class VerifyAccessToken
         }
 
         return $next($request);
+    }
+
+    protected function getNewAccessToken(): string
+    {
+        $response = $this->getClient()->post(config('authorizationserver.token_url'), [
+            'form_params' => [
+                'grant_type' => 'client_credentials',
+                'client_id' => config('authorizationserver.client_id'),
+                'client_secret' => config('authorizationserver.client_secret'),
+                'scope' => '',
+            ],
+        ]);
+
+        $result = json_decode((string) $response->getBody(), true);
+
+        if (isset($result['access_token'])) {
+            $accessToken = $result['access_token'];
+
+            Cache::add($this->accessTokenCacheKey, $accessToken, intVal($result['expires_in']) / 60);
+
+            return $accessToken;
+        }
+
+        throw new AuthenticationException('Did not receive an access token');
+    }
+
+    public function setClient(Client $client): self
+    {
+        $this->client = $client;
+
+        return $this;
     }
 }
