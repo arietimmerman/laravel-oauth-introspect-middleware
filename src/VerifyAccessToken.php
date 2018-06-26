@@ -2,9 +2,8 @@
 namespace DesignMyNight\Laravel\OAuth2;
 
 use Closure;
-use DesignMyNight\Laravel\OAuth2\Exceptions\InvalidAccessTokenException;
-use DesignMyNight\Laravel\OAuth2\Exceptions\InvalidEndpointException;
-use DesignMyNight\Laravel\OAuth2\Exceptions\InvalidInputException;
+use Illuminate\Auth\AuthenticationException;
+use Laravel\Passport\Exceptions\MissingScopeException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Cache;
@@ -74,7 +73,7 @@ class VerifyAccessToken
             return $accessToken;
         }
 
-        throw new InvalidEndpointException('Did not receive an access token');
+        throw new AuthenticationException('Did not receive an access token');
     }
 
     /**
@@ -89,20 +88,20 @@ class VerifyAccessToken
         $authorization = $request->header('Authorization');
 
         if (!$authorization) {
-            throw new InvalidInputException('No Authorization header present');
+            throw new AuthenticationException('No Authorization header present');
         }
 
         $bearerToken = $request->bearerToken();
 
         if (!$bearerToken) {
-            throw new InvalidInputException('No Bearer token in the Authorization header present');
+            throw new AuthenticationException('No Bearer token in the Authorization header present');
         }
 
         try {
             $result = $this->getIntrospect($bearerToken);
 
             if (!$result['active']) {
-                throw new InvalidAccessTokenException('Invalid token!');
+                throw new AuthenticationException('Invalid token!');
             }
 
             if ($scopes != null) {
@@ -111,9 +110,10 @@ class VerifyAccessToken
                 }
 
                 $scopesForToken = \explode(' ', $result['scope']);
+                $misingScopes = array_diff($scopes, $scopesForToken);
 
-                if (count($misingScopes = array_diff($scopes, $scopesForToken)) > 0) {
-                    throw new InvalidAccessTokenException('Missing the following required scopes: ' . implode(' ,', $misingScopes));
+                if (count($misingScopes) > 0) {
+                    throw new MissingScopeException($misingScopes);
                 }
             }
         } catch (RequestException $e) {
@@ -121,13 +121,13 @@ class VerifyAccessToken
                 $result = json_decode((string) $e->getResponse()->getBody(), true);
 
                 if (isset($result['error'])) {
-                    throw new InvalidAccessTokenException($result['error']['title'] ?? 'Invalid token!');
+                    throw new AuthenticationException($result['error']['title'] ?? 'Invalid token!');
                 }
 
-                throw new InvalidAccessTokenException('Invalid token!');
+                throw new AuthenticationException('Invalid token!');
             }
 
-            throw new InvalidAccessTokenException($e);
+            throw new AuthenticationException($e);
         }
 
         return $next($request);
