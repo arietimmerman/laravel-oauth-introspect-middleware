@@ -85,12 +85,6 @@ class VerifyAccessToken
      */
     public function handle($request, Closure $next, ...$scopes)
     {
-        $authorization = $request->header('Authorization');
-
-        if (!$authorization) {
-            throw new AuthenticationException('No Authorization header present');
-        }
-
         $bearerToken = $request->bearerToken();
 
         if (!$bearerToken) {
