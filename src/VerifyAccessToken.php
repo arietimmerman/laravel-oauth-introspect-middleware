@@ -88,7 +88,7 @@ class VerifyAccessToken
         $bearerToken = $request->bearerToken();
 
         if (!$bearerToken) {
-            throw new AuthenticationException('No Bearer token in the Authorization header present');
+            throw new AuthenticationException('No Bearer token present');
         }
 
         try {
