@@ -12,7 +12,8 @@
     "require": {
 		"php": "^7.0",
      	"guzzlehttp/guzzle": "~6.0",
-        "laravel/framework": "^5.5"
+        "laravel/framework": "^5.5",
+        "laravel/passport": "^4.0"
     },
     "autoload": {
         "psr-4": {"DesignMyNight\\Laravel\\OAuth2\\": "src/"}

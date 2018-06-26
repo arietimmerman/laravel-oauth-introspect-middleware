@@ -2,18 +2,37 @@
 namespace DesignMyNight\Laravel\OAuth2;
 
 use Closure;
-use DesignMyNight\Laravel\OAuth2\Exceptions\InvalidAccessTokenException;
-use DesignMyNight\Laravel\OAuth2\Exceptions\InvalidEndpointException;
-use DesignMyNight\Laravel\OAuth2\Exceptions\InvalidInputException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Cache;
+use Laravel\Passport\Exceptions\MissingScopeException;
 
 class VerifyAccessToken
 {
     protected $accessTokenCacheKey = 'access_token';
 
     private $client = null;
+
+    protected function checkScopes($scopesForToken, $requiredScopes)
+    {
+        if (!is_array($requiredScopes)) {
+            $requiredScopes = [$requiredScopes];
+        }
+
+        $misingScopes = array_diff($scopesForToken, $scopesForToken);
+
+        if (count($misingScopes) > 0) {
+            throw new MissingScopeException($misingScopes);
+        }
+    }
+
+    protected function getAccessToken(): string
+    {
+        $accessToken = Cache::get($this->accessTokenCacheKey);
+
+        return $accessToken ?: $this->getNewAccessToken();
+    }
 
     private function getClient(): Client
     {
@@ -22,13 +41,6 @@ class VerifyAccessToken
         }
 
         return $this->client;
-    }
-
-    public function setClient(Client $client): self
-    {
-        $this->client = $client;
-
-        return $this;
     }
 
     protected function getIntrospect($accessToken)
@@ -46,11 +58,44 @@ class VerifyAccessToken
         return json_decode((string) $response->getBody(), true);
     }
 
-    protected function getAccessToken(): string
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Closure                 $next
+     * @return mixed
+     */
+    public function handle($request, Closure $next, ...$scopes)
     {
-        $accessToken = Cache::get($this->accessTokenCacheKey);
+        $bearerToken = $request->bearerToken();
 
-        return $accessToken ?: $this->getNewAccessToken();
+        if (!$bearerToken) {
+            throw new AuthenticationException('No Bearer token present');
+        }
+
+        try {
+            $result = $this->getIntrospect($bearerToken);
+
+            if (!$result['active']) {
+                throw new AuthenticationException('Invalid token!');
+            }
+
+            if ($scopes !== null) {
+                $this->checkScopes(explode(' ', $result['scope']), $scopes);
+            }
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
+                $result = json_decode((string) $e->getResponse()->getBody(), true);
+
+                if (isset($result['error'])) {
+                    throw new AuthenticationException($result['error']['title'] ?? '');
+                }
+            }
+
+            throw new AuthenticationException($e->getMessage());
+        }
+
+        return $next($request);
     }
 
     protected function getNewAccessToken(): string
@@ -74,62 +119,13 @@ class VerifyAccessToken
             return $accessToken;
         }
 
-        throw new InvalidEndpointException('Did not receive an access token');
+        throw new AuthenticationException('Did not receive an access token');
     }
 
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @param  \Closure                 $next
-     * @return mixed
-     */
-    public function handle($request, Closure $next, ...$scopes)
+    public function setClient(Client $client): self
     {
-        $authorization = $request->header('Authorization');
+        $this->client = $client;
 
-        if (!$authorization) {
-            throw new InvalidInputException('No Authorization header present');
-        }
-
-        $bearerToken = $request->bearerToken();
-
-        if (!$bearerToken) {
-            throw new InvalidInputException('No Bearer token in the Authorization header present');
-        }
-
-        try {
-            $result = $this->getIntrospect($bearerToken);
-
-            if (!$result['active']) {
-                throw new InvalidAccessTokenException('Invalid token!');
-            }
-
-            if ($scopes != null) {
-                if (!\is_array($scopes)) {
-                    $scopes = [$scopes];
-                }
-
-                $scopesForToken = \explode(' ', $result['scope']);
-
-                if (count($misingScopes = array_diff($scopes, $scopesForToken)) > 0) {
-                    throw new InvalidAccessTokenException('Missing the following required scopes: ' . implode(' ,', $misingScopes));
-                }
-            }
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $result = json_decode((string) $e->getResponse()->getBody(), true);
-
-                if (isset($result['error'])) {
-                    throw new InvalidAccessTokenException($result['error']['title'] ?? 'Invalid token!');
-                }
-
-                throw new InvalidAccessTokenException('Invalid token!');
-            }
-
-            throw new InvalidAccessTokenException($e);
-        }
-
-        return $next($request);
+        return $this;
     }
 }
