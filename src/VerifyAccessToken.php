@@ -14,6 +14,19 @@ class VerifyAccessToken
 
     private $client = null;
 
+    protected function checkScopes($scopesForToken, $requiredScopes)
+    {
+        if (!is_array($requiredScopes)) {
+            $requiredScopes = [$requiredScopes];
+        }
+
+        $misingScopes = array_diff($scopesForToken, $scopesForToken);
+
+        if (count($misingScopes) > 0) {
+            throw new MissingScopeException($misingScopes);
+        }
+    }
+
     private function getClient(): Client
     {
         if ($this->client === null) {
@@ -98,17 +111,8 @@ class VerifyAccessToken
                 throw new AuthenticationException('Invalid token!');
             }
 
-            if ($scopes != null) {
-                if (!\is_array($scopes)) {
-                    $scopes = [$scopes];
-                }
-
-                $scopesForToken = \explode(' ', $result['scope']);
-                $misingScopes = array_diff($scopes, $scopesForToken);
-
-                if (count($misingScopes) > 0) {
-                    throw new MissingScopeException($misingScopes);
-                }
+            if ($scopes !== null) {
+                $this->checkScopes(explode(' ', $result['scope']), $scopes);
             }
         } catch (RequestException $e) {
             if ($e->hasResponse()) {
