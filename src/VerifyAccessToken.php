@@ -106,7 +106,7 @@ class VerifyAccessToken
                 'grant_type' => 'client_credentials',
                 'client_id' => config('authorizationserver.client_id'),
                 'client_secret' => config('authorizationserver.client_secret'),
-                'scope' => '',
+                'scope' => config('authorizationserver.scope'),
             ],
         ]);
 
