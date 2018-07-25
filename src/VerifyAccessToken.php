@@ -51,6 +51,7 @@ class VerifyAccessToken
                 'token' => $accessToken,
             ],
             'headers' => [
+                'Accept' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->getAccessToken(),
             ],
         ]);
