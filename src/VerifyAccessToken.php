@@ -20,7 +20,7 @@ class VerifyAccessToken
             $requiredScopes = [$requiredScopes];
         }
 
-        $misingScopes = array_diff($scopesForToken, $scopesForToken);
+        $misingScopes = array_diff($requiredScopes, $scopesForToken);
 
         if (count($misingScopes) > 0) {
             throw new MissingScopeException($misingScopes);
