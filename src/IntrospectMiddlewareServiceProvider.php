@@ -1,7 +1,10 @@
 <?php
+
 namespace DesignMyNight\Laravel\OAuth2;
 
 use Illuminate\Foundation\Application as LaravelApplication;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Lumen\Application as LumenApplication;
 
@@ -30,5 +33,15 @@ class IntrospectMiddlewareServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $request = $this->app->make(Request::class);
+        $introspect = new Introspect($request);
+
+        $this->app->singleton(Introspect::class, function() use($introspect) {
+            return $introspect;
+        });
+
+        Auth::extend('introspect', function () use($introspect) {
+            return new IntrospectGuard($introspect);
+        });
     }
 }
