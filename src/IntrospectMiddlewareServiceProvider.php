@@ -48,7 +48,7 @@ class IntrospectMiddlewareServiceProvider extends ServiceProvider
         });
 
         Auth::extend('introspect', function () use($introspect) {
-            return new IntrospectGuard($introspect);
+            return new Guard\IntrospectGuard($introspect);
         });
     }
 }

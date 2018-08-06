@@ -3,16 +3,19 @@
 namespace DesignMyNight\Laravel\OAuth2;
 
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
 use Laravel\Passport\Exceptions\MissingScopeException;
 
 class Introspect
 {
     protected $accessTokenCacheKey = 'access_token';
-
     protected $client = null;
     protected $result;
+    protected $userDataKey = 'user';
+    protected $userModelClass = User::class;
 
     public function __construct(IntrospectClient $client, Request $request)
     {
@@ -52,6 +55,20 @@ class Introspect
         }
     }
 
+    public function setUserDataKey(string $key): self
+    {
+        $this->userDataKey = $key;
+
+        return $this;
+    }
+
+    public function setUserModelClass(string $class): self
+    {
+        $this->userModelClass = $class;
+
+        return $this;
+    }
+
     public function tokenIsActive(): bool
     {
         $result = $this->getIntrospectionResult();
@@ -62,6 +79,32 @@ class Introspect
     public function tokenIsNotActive(): bool
     {
         return !$this->tokenIsActive();
+    }
+
+    public function getUser()
+    {
+        $result = $this->getIntrospectionResult();
+
+        if (isset($result[$this->userDataKey])) {
+            $user = $this->getUserModel();
+            $user->forceFill($result[$this->userDataKey]);
+
+            return $user;
+        }
+
+        return null;
+    }
+
+    public function getUserModel(): Authenticatable
+    {
+        $class = $this->getUserModelClass();
+
+        return new $class();
+    }
+
+    public function getUserModelClass(): string
+    {
+        return $this->userModelClass;
     }
 
     public function verifyToken()
