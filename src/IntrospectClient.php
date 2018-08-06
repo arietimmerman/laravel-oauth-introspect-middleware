@@ -68,6 +68,7 @@ class IntrospectClient
                 'token' => $token,
             ],
             'headers' => [
+                'Accept' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->getAccessToken(),
             ],
         ]);
