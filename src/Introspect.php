@@ -87,7 +87,7 @@ class Introspect
     {
         $result = $this->getIntrospectionResult();
 
-        if (isset($result[$this->userDataKey])) {
+        if (isset($result[$this->userDataKey]) && !empty($result[$this->userDataKey])) {
             $user = $this->getUserModel();
             $user->forceFill($result[$this->userDataKey]);
 
