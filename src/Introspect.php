@@ -48,10 +48,10 @@ class Introspect
     {
         $result = $this->getIntrospectionResult();
         $givenScopes = explode(' ', $result['scope']);
-        $misingScopes = array_diff($requiredScopes, $givenScopes);
+        $missingScopes = array_diff($requiredScopes, $givenScopes);
 
-        if (count($misingScopes) > 0) {
-            throw new MissingScopeException($misingScopes);
+        if (count($missingScopes) > 0) {
+            throw new MissingScopeException($missingScopes);
         }
     }
 
