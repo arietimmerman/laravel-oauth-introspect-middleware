@@ -17,7 +17,7 @@ class VerifyAccessToken
         $scopes = is_array($scopes) ? $scopes : [$scopes];
 
         $this->introspect
-            ->verify()
+            ->verifyToken()
             ->mustHaveScopes($scopes);
 
         return $next($request);

@@ -2,9 +2,11 @@
 
 namespace DesignMyNight\Laravel\OAuth2;
 
+use Illuminate\Cache\Repository as Cache;
 use Illuminate\Foundation\Application as LaravelApplication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Lumen\Application as LumenApplication;
 
@@ -24,17 +26,22 @@ class IntrospectMiddlewareServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom($routes);
         $this->mergeConfigFrom($source, 'authorizationserver');
+
+        $this->bootIntrospection();
     }
 
-    /**
-     * Register the service provider.
-     *
-     * @return void
-     */
-    public function register()
+    protected function bootIntrospection()
     {
         $request = $this->app->make(Request::class);
-        $introspect = new Introspect($request);
+        $cache = $this->app->make(Cache::class);
+        $config = Config::get('authorizationserver');
+
+        $client = new IntrospectClient($config, $cache);
+        $introspect = new Introspect($client, $request);
+
+        $this->app->singleton(IntrospectClient::class, function() use($client) {
+            return $client;
+        });
 
         $this->app->singleton(Introspect::class, function() use($introspect) {
             return $introspect;
