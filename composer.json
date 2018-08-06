@@ -1,5 +1,5 @@
 {
-    "name": "designmynight/laravel-oauth-introspect-middleware",
+    "name": "designmynight/laravel-oauth-introspect-client",
     "description": "Laravel Middleware for letting a resource owner verify a OAuth2 access tokens with a remote authorization server",
     "type": "library",
     "license": "MIT",
