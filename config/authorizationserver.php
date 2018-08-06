@@ -7,4 +7,5 @@ return [
     'introspect_url' => env('AUTHORIZATION_SERVER_INTROSPECT_URL'),
     'client_id' => env('AUTHORIZATION_SERVER_CLIENT_ID'),
     'client_secret' => env('AUTHORIZATION_SERVER_CLIENT_SECRET'),
+    'scope' => env('AUTHORIZATION_SERVER_SCOPE'),
 ];

@@ -84,7 +84,7 @@ class Introspect
                 'grant_type' => 'client_credentials',
                 'client_id' => config('authorizationserver.client_id'),
                 'client_secret' => config('authorizationserver.client_secret'),
-                'scope' => '',
+                'scope' => config('authorizationserver.scope'),
             ],
         ]);
 
@@ -116,6 +116,7 @@ class Introspect
                 'token' => $this->request->bearerToken(),
             ],
             'headers' => [
+                'Accept' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->getAccessToken(),
             ],
         ]);
