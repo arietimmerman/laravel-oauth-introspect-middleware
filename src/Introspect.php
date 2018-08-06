@@ -25,20 +25,22 @@ class Introspect
 
     protected function getIntrospectionResult()
     {
-        if ($this->result === null) {
-            try {
-                $this->result = $this->client->introspect($this->request->bearerToken());
-            } catch (RequestException $e) {
-                if ($e->hasResponse()) {
-                    $result = json_decode((string) $e->getResponse()->getBody(), true);
+        if ($this->result !== null) {
+            return $this->result;
+        }
 
-                    if (isset($result['error'])) {
-                        throw new AuthenticationException($result['error']['title'] ?? '');
-                    }
+        try {
+            $this->result = $this->client->introspect($this->request->bearerToken());
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
+                $result = json_decode((string) $e->getResponse()->getBody(), true);
+
+                if (isset($result['error'])) {
+                    throw new AuthenticationException($result['error']['title'] ?? '');
                 }
-
-                throw new AuthenticationException($e->getMessage());
             }
+
+            throw new AuthenticationException($e->getMessage());
         }
 
         return $this->result;
