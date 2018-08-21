@@ -29,8 +29,14 @@ class Introspect
             return $this->result;
         }
 
+        $token = $this->request->bearerToken();
+
+        if (empty($token)) {
+            throw new AuthenticationException();
+        }
+
         try {
-            $this->result = $this->client->introspect($this->request->bearerToken());
+            $this->result = $this->client->introspect($token);
         } catch (RequestException $e) {
             if ($e->hasResponse()) {
                 $result = json_decode((string) $e->getResponse()->getBody(), true);
