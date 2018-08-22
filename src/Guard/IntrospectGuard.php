@@ -3,12 +3,13 @@
 namespace DesignMyNight\Laravel\OAuth2\Guard;
 
 use DesignMyNight\Laravel\OAuth2\Introspect;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard;
 
 class IntrospectGuard implements Guard
 {
-    protected $user;
+    protected $user = false;
 
     public function __construct(Introspect $introspect)
     {
@@ -22,7 +23,7 @@ class IntrospectGuard implements Guard
 
     public function check()
     {
-       return ! is_null($this->user());
+        return !is_null($this->user());
     }
 
     public function guest()
@@ -37,10 +38,14 @@ class IntrospectGuard implements Guard
 
     public function user()
     {
-        if ($this->user === null) {
-            $this->user = $this->introspect
-                ->verifyToken()
-                ->getUser();
+        if ($this->user === false) {
+            try {
+                $this->user = $this->introspect
+                    ->verifyToken()
+                    ->getUser();
+            } catch (AuthenticationException $e) {
+                $this->user = null;
+            }
         }
 
         return $this->user;
