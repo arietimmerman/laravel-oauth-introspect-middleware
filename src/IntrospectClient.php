@@ -52,7 +52,7 @@ class IntrospectClient
         if (isset($result['access_token'])) {
             $accessToken = $result['access_token'];
 
-            $this->cache->add($this->accessTokenCacheKey, $accessToken, intVal($result['expires_in']) / 60);
+            $this->cache->add($this->accessTokenCacheKey, $accessToken, (intVal($result['expires_in']) / 60) - 5);
 
             return $accessToken;
         }
