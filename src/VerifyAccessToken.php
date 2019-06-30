@@ -32,19 +32,37 @@ class VerifyAccessToken {
 	/**
 	 */
 	protected function getIntrospect($accessToken) {
-		$guzzle = $this->getClient ();		
+		$guzzle = $this->getClient ();
 		
-		$response = $guzzle->post ( config ( 'authorizationserver.authorization_server_introspect_url' ), [ 
-				'form_params' => [ 
-						'token_type_hint' => 'access_token',
-						
-						// This is the access token for verifying the user's access token
-						'token' => $accessToken
-				],
-				'headers' => [ 
-						'Authorization' => 'Bearer ' . $this->getAccessToken ()  
-				] 
-		] );
+		$tries = 0;
+		do{
+		
+			try {
+				$response = $guzzle->post ( config ( 'authorizationserver.authorization_server_introspect_url' ), [ 
+						'form_params' => [ 
+								'token_type_hint' => 'access_token',
+								
+								// This is the access token for verifying the user's access token
+								'token' => $accessToken
+						],
+						'headers' => [ 
+								'Authorization' => 'Bearer ' . $this->getAccessToken ()  
+						] 
+				] );
+
+				$tries++;
+			}catch(RequestException $e){
+
+				# Access token might have expired, just retry getting one
+				\Cache::forget ( 'accessToken');
+
+				if($tries == 2){
+					throw $e;
+				}
+
+			}
+
+		}while($tries < 2);
 
 		return json_decode ( ( string ) $response->getBody (), true );
 	}
@@ -97,14 +115,15 @@ class VerifyAccessToken {
 		
 		$receivedAccessToken = preg_replace ( '/^Bearer (.*?)$/', '$1', $authorization );
 		
-		if (strlen ( $receivedAccessToken ) == 0) {
+		# Just to be sure it is really an access token
+		if (strlen ( $receivedAccessToken ) <= 1) {
 			throw new InvalidInputException ( "No Bearer token in the Authorization header present" );
 		}
-		
+				
 		// Now verify the user provided access token
 		try {
 			
-			$result = $this->getIntrospect ( $receivedAccessToken );
+			$result = $this->getIntrospect ( $receivedAccessToken );	
 			if (! $result ['active']) {
 				
 				throw new InvalidAccessTokenException ( "Invalid token!" );
@@ -127,8 +146,6 @@ class VerifyAccessToken {
 			if ($e->hasResponse ()) {
 				$result = json_decode ( ( string ) $e->getResponse ()->getBody (), true );
 				
-				var_dump($result);exit;
-
 				if (isset ( $result ['error'] )) {
 					throw new InvalidAccessTokenException ( $result ['error'] ['title'] ?? "Invalid token!");
 				} else {
