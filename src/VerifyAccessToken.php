@@ -38,6 +38,7 @@ class VerifyAccessToken {
 		do{
 		
 			try {
+				$tries++;
 				$response = $guzzle->post ( config ( 'authorizationserver.authorization_server_introspect_url' ), [ 
 						'form_params' => [ 
 								'token_type_hint' => 'access_token',
@@ -49,8 +50,6 @@ class VerifyAccessToken {
 								'Authorization' => 'Bearer ' . $this->getAccessToken ()  
 						] 
 				] );
-
-				$tries++;
 			}catch(RequestException $e){
 
 				# Access token might have expired, just retry getting one
