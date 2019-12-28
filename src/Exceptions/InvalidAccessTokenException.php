@@ -2,6 +2,7 @@
 
 namespace ArieTimmerman\Laravel\OAuth2\Exceptions;
 
-class InvalidAccessTokenException extends \Exception{
+class InvalidAccessTokenException extends \Exception
+{
 
 }

@@ -12,7 +12,7 @@
     "require": {
 		"php": "^7.0",
      	"guzzlehttp/guzzle": "~6.0",
-        "laravel/framework": "^5.5"
+        "laravel/framework": "^5.5 || ^6.0"
     },
     "autoload": {
         "psr-4": {"ArieTimmerman\\Laravel\\OAuth2\\": "src/"}
@@ -23,6 +23,7 @@
         }
     },
     "require-dev": {
-        "orchestra/testbench": "~3.0"
+        "orchestra/testbench": "~3.0",
+        "squizlabs/php_codesniffer": "^3.5"
     }
 }
