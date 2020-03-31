@@ -15,12 +15,13 @@ class Introspect
     protected $client = null;
     protected $result;
     protected $userDataKey = 'user';
-    protected $userModelClass = User::class;
+    protected $userModelClass;
 
     public function __construct(IntrospectClient $client, Request $request)
     {
         $this->client = $client;
         $this->request = $request;
+        $this->setUserModelClass(config('authorizationserver.model', User::class));
     }
 
     protected function getIntrospectionResult()
