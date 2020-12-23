@@ -48,7 +48,9 @@ publish the configuration
 php artisan vendor:publish
 ~~~
 
-Finally in your `.env` file, define the following properties
+# Configuration
+
+In your `.env` file, define the following properties
 
 ~~~.properties
 # Url of the authorization server
@@ -71,6 +73,12 @@ Now, use the middleware.
 
 ~~~.php
 Route::group(['middleware'=>'verifyaccesstoken:required-scope1,required-scope2'], function () {
+	Route::get('/endpoint1', 'UserController@index');
+	Route::resource('/resource', 'OrderController');
+});
+
+// or if only one of the scopes from the list is required
+Route::group(['middleware'=>'verifyaccesstoken_has_any:required-scope1,required-scope2'], function () {
 	Route::get('/endpoint1', 'UserController@index');
 	Route::resource('/resource', 'OrderController');
 });
