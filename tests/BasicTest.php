@@ -86,6 +86,106 @@ class BasicTest extends TestCase
             "missing_scope"
         );
     }
+
+    public function testMissingAllScopes()
+    {
+        $this->expectException(InvalidAccessTokenException::class);
+        $middleware = new \ArieTimmerman\Laravel\OAuth2\VerifyAccessTokenHasAnyScope();
+        
+        $mock = new MockHandler(
+            [
+            $this->getClientCredentialsTokenEndPoint(),
+            new Response(
+                200,
+                [ ],
+                Utils::streamFor(
+                    '{
+                "active": true,
+                "client_id": "l238j323ds-23ij4",
+                "username": "jdoe",
+                "scope": "read write dolphin",
+                "sub": "Z5O3upPC88QrAjx00dis",
+                "aud": "https://protected.example.net/resource",
+                "iss": "https://server.example.com/",
+                "exp": 1419356238,
+                "iat": 1419350238,
+                "extension_field": "twenty-seven"
+            }'
+                )
+            )
+            ],
+        );
+        
+        $middleware->setClient(
+            new Client(
+                [
+                'handler' => HandlerStack::create($mock)
+                ]
+            )
+        );
+        
+        $request = Request::create('http://example.com/admin', 'GET');
+        $request->headers->set('Authorization', 'Bearer test123');
+        
+        $middleware->handle(
+            $request,
+            function () {
+                return true;
+            },
+            "other-scope"
+        );
+    }
+
+    public function testAnyScopePresent()
+    {
+        
+        $middleware = new \ArieTimmerman\Laravel\OAuth2\VerifyAccessTokenHasAnyScope();
+        
+        $mock = new MockHandler(
+            [
+            $this->getClientCredentialsTokenEndPoint(),
+            new Response(
+                200,
+                [ ],
+                Utils::streamFor(
+                    '{
+                "active": true,
+                "client_id": "l238j323ds-23ij4",
+                "username": "jdoe",
+                "scope": "read write dolphin",
+                "sub": "Z5O3upPC88QrAjx00dis",
+                "aud": "https://protected.example.net/resource",
+                "iss": "https://server.example.com/",
+                "exp": 1419356238,
+                "iat": 1419350238,
+                "extension_field": "twenty-seven"
+            }'
+                )
+            )
+            ],
+        );
+        
+        $middleware->setClient(
+            new Client(
+                [
+                'handler' => HandlerStack::create($mock)
+                ]
+            )
+        );
+        
+        $request = Request::create('http://example.com/admin', 'GET');
+        $request->headers->set('Authorization', 'Bearer test123');
+        
+        $response = $middleware->handle(
+            $request,
+            function () {
+                return true;
+            },
+            "dolphin"
+        );
+
+        $this->assertTrue($response);
+    }
     
     public function testRequiredScopePresent()
     {

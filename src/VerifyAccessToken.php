@@ -14,20 +14,20 @@ use ArieTimmerman\Laravel\OAuth2\Exceptions\InvalidEndpointException;
 
 class VerifyAccessToken
 {
-    private $_client = null;
+    private $client = null;
     
     private function getClient()
     {
-        if ($this->_client == null) {
-            $this->_client = new \GuzzleHttp\Client();
+        if ($this->client == null) {
+            $this->client = new \GuzzleHttp\Client();
         }
         
-        return $this->_client;
+        return $this->client;
     }
     
     public function setClient(\GuzzleHttp\Client $client)
     {
-        $this->_client = $client;
+        $this->client = $client;
     }
     
     /**
@@ -57,7 +57,6 @@ class VerifyAccessToken
                 // Do not retry if successful
                 $tries = 2;
             } catch (RequestException $e) {
-
                 // Access token might have expired, just retry getting one
                 Cache::forget('accessToken');
 
@@ -82,8 +81,8 @@ class VerifyAccessToken
                 [
                 'form_params' => [
                 'grant_type' => 'client_credentials',
-                'client_id' => config('authorizationserver.authorization_server_client_id'),
-                'client_secret' => config('authorizationserver.authorization_server_client_secret'),
+                'client_id' => config('authorizationserver.authorization_serverclient_id'),
+                'client_secret' => config('authorizationserver.authorization_serverclient_secret'),
                 'scope' => ''
                 ]
                 ]
@@ -101,6 +100,15 @@ class VerifyAccessToken
         }
         
         return $accessToken;
+    }
+    
+    protected function checkScopes($scopes, $scopesForToken)
+    {
+        if (count($misingScopes = array_diff($scopes, $scopesForToken)) > 0) {
+            throw new InvalidAccessTokenException(
+                "Missing the following required scopes: " . implode(" ,", $misingScopes)
+            );
+        }
     }
     
     /**
@@ -139,10 +147,7 @@ class VerifyAccessToken
                 
                 $scopesForToken = \explode(" ", $result ['scope']);
                 
-                if (count($misingScopes = array_diff($scopes, $scopesForToken)) > 0) {
-                    throw new InvalidAccessTokenException("Missing the following required scopes: " . implode(" ,", $misingScopes));
-                } else {
-                }
+                $this->checkScopes($scopes, $scopesForToken);
             }
         } catch (RequestException $e) {
             if ($e->hasResponse()) {

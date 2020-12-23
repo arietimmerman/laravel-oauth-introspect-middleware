@@ -36,6 +36,8 @@ and add the MiddleWare in your `App/Http/Kernel.php`
 protected $routeMiddleware = [
     // [..]
     'verifyaccesstoken' => \ArieTimmerman\Laravel\OAuth2\VerifyAccessToken::class,
+    // Or
+    'verifyaccesstoken_has_any' => \ArieTimmerman\Laravel\OAuth2\VerifyAccessTokenHasAnyScope::class,
     // [..]   
 ];
 ~~~  
