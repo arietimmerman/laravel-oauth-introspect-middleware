@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Basic tests
+ */
 namespace ArieTimmerman\Laravel\OAuth2\Tests;
 
 use Illuminate\Http\Request;
@@ -62,8 +64,8 @@ class BasicTest extends TestCase
             }'
                 )
             )
-            ]
-        ,);
+            ],
+        );
         
         $middleware->setClient(
             new Client(
