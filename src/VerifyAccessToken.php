@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Middleware for verifying the Bearer OAuth2 access token as provided in the HTTP Authorization-header. 
+ * Middleware for verifying the Bearer OAuth2 access token as provided in the HTTP Authorization-header.
  */
 namespace ArieTimmerman\Laravel\OAuth2;
 
@@ -14,21 +14,20 @@ use ArieTimmerman\Laravel\OAuth2\Exceptions\InvalidEndpointException;
 
 class VerifyAccessToken
 {
-    
-    private $client = null;
+    private $_client = null;
     
     private function getClient()
     {
-        if ($this->client == null) {
-            $this->client = new \GuzzleHttp\Client();
+        if ($this->_client == null) {
+            $this->_client = new \GuzzleHttp\Client();
         }
         
-        return $this->client;
+        return $this->_client;
     }
     
     public function setClient(\GuzzleHttp\Client $client)
     {
-        $this->client = $client;
+        $this->_client = $client;
     }
     
     /**
@@ -38,35 +37,35 @@ class VerifyAccessToken
         $guzzle = $this->getClient();
         
         $tries = 0;
-        do{
-        
+        do {
             try {
                 $tries++;
                 $response = $guzzle->post(
-                    config('authorizationserver.authorization_server_introspect_url'), [ 
-                    'form_params' => [ 
+                    config('authorizationserver.authorization_server_introspect_url'),
+                    [
+                    'form_params' => [
                     'token_type_hint' => 'access_token',
                                 
                     // This is the access token for verifying the user's access token
                     'token' => $accessToken
                     ],
-                    'headers' => [ 
-                    'Authorization' => 'Bearer ' . $this->getAccessToken()  
-                    ] 
-                    ] 
+                    'headers' => [
+                    'Authorization' => 'Bearer ' . $this->getAccessToken()
+                    ]
+                    ]
                 );
-            }catch(RequestException $e){
+                // Do not retry if successful
+                $tries = 2;
+            } catch (RequestException $e) {
 
                 // Access token might have expired, just retry getting one
-                \Cache::forget('accessToken');
+                Cache::forget('accessToken');
 
-                if($tries == 2) {
+                if ($tries == 2) {
                     throw $e;
                 }
-
             }
-
-        }while($tries < 2);
+        } while ($tries < 2);
 
         return json_decode(( string ) $response->getBody(), true);
     }
@@ -76,29 +75,27 @@ class VerifyAccessToken
         $accessToken = Cache::get('accessToken');
         
         if (! $accessToken) {
-            
             $guzzle = $this->getClient();
             
             $response = $guzzle->post(
-                config('authorizationserver.authorization_server_token_url'), [ 
-                'form_params' => [ 
+                config('authorizationserver.authorization_server_token_url'),
+                [
+                'form_params' => [
                 'grant_type' => 'client_credentials',
                 'client_id' => config('authorizationserver.authorization_server_client_id'),
                 'client_secret' => config('authorizationserver.authorization_server_client_secret'),
-                'scope' => '' 
-                ] 
-                ] 
+                'scope' => ''
+                ]
+                ]
             );
             
             $result = json_decode(( string ) $response->getBody(), true);
             
             if ($result && isset($result ['access_token'])) {
+                $accessToken = $result ['access_token'];
                 
-                   $accessToken = $result ['access_token'];
-                
-                   \Cache::add('accessToken', $accessToken, intVal($result ['expires_in']) / 60);
+                Cache::add('accessToken', $accessToken, intVal($result ['expires_in']) / 60);
             } else {
-                
                 throw new InvalidEndpointException("Did not receive an access token");
             }
         }
@@ -109,8 +106,8 @@ class VerifyAccessToken
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request $request            
-     * @param  \Closure                 $next            
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Closure                 $next
      * @return mixed
      */
     public function handle($request, Closure $next, ...$scopes)
@@ -130,27 +127,24 @@ class VerifyAccessToken
                 
         // Now verify the user provided access token
         try {
-            
-            $result = $this->getIntrospect($receivedAccessToken);    
+            $result = $this->getIntrospect($receivedAccessToken);
             if (! $result ['active']) {
-                
                 throw new InvalidAccessTokenException("Invalid token!");
-            } else if ($scopes != null) {
-                
+            } elseif ($scopes != null) {
                 if (! \is_array($scopes)) {
-                    $scopes = [ 
-                    $scopes 
+                    $scopes = [
+                    $scopes
                     ];
                 }
                 
                 $scopesForToken = \explode(" ", $result ['scope']);
                 
-                if (count($misingScopes = array_diff($scopes, $scopesForToken)) > 0 ) {
+                if (count($misingScopes = array_diff($scopes, $scopesForToken)) > 0) {
                     throw new InvalidAccessTokenException("Missing the following required scopes: " . implode(" ,", $misingScopes));
                 } else {
                 }
             }
-        } catch ( RequestException $e ) {
+        } catch (RequestException $e) {
             if ($e->hasResponse()) {
                 $result = json_decode(( string ) $e->getResponse()->getBody(), true);
                 

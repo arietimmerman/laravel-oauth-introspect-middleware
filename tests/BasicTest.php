@@ -8,12 +8,11 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7;
 use ArieTimmerman\Laravel\OAuth2\Exceptions\InvalidAccessTokenException;
+use GuzzleHttp\Psr7\Utils;
 
 class BasicTest extends TestCase
 {
-    
     protected function getEnvironmentSetUp($app)
     {
         $app ['config']->set('authorizationserver.authorization_server_token_url', 'https://token_endpoint');
@@ -23,14 +22,16 @@ class BasicTest extends TestCase
     protected function getClientCredentialsTokenEndPoint()
     {
         return new Response(
-            200, [ ], Psr7\stream_for(
+            200,
+            [ ],
+            Utils::streamFor(
                 '{
             "access_token":"2YotnFZFEjr1zCsicMWpAA",
             "token_type":"example",
             "expires_in":3600,
             "example_parameter":"example_value"
-        }' 
-            ) 
+        }'
+            )
         );
     }
     
@@ -41,12 +42,12 @@ class BasicTest extends TestCase
         $middleware = new \ArieTimmerman\Laravel\OAuth2\VerifyAccessToken();
         
         $mock = new MockHandler(
-            [ 
-                
+            [
             $this->getClientCredentialsTokenEndPoint(),
-                
             new Response(
-                200, [ ], Psr7\stream_for(
+                200,
+                [ ],
+                Utils::streamFor(
                     '{
                 "active": true,
                 "client_id": "l238j323ds-23ij4",
@@ -58,27 +59,29 @@ class BasicTest extends TestCase
                 "exp": 1419356238,
                 "iat": 1419350238,
                 "extension_field": "twenty-seven"
-            }' 
-                ) 
-            ) 
+            }'
+                )
+            )
             ]
-        );
+        ,);
         
         $middleware->setClient(
             new Client(
-                [ 
-                'handler' => HandlerStack::create($mock) 
-                ] 
-            ) 
+                [
+                'handler' => HandlerStack::create($mock)
+                ]
+            )
         );
         
         $request = Request::create('http://example.com/admin', 'GET');
         $request->headers->set('Authorization', 'Bearer test123');
         
-        $response = $middleware->handle(
-            $request, function () {
+        $middleware->handle(
+            $request,
+            function () {
                 return true;
-            }, "missing_scope" 
+            },
+            "missing_scope"
         );
     }
     
@@ -87,12 +90,14 @@ class BasicTest extends TestCase
         $middleware = new \ArieTimmerman\Laravel\OAuth2\VerifyAccessToken();
         
         $mock = new MockHandler(
-            [ 
+            [
                 
             $this->getClientCredentialsTokenEndPoint(),
                 
             new Response(
-                200, [ ], Psr7\stream_for(
+                200,
+                [ ],
+                Utils::streamFor(
                     '{
                     "active": true,
                     "client_id": "l238j323ds-23ij4",
@@ -104,27 +109,29 @@ class BasicTest extends TestCase
                     "exp": 1419356238,
                     "iat": 1419350238,
                     "extension_field": "twenty-seven"
-                }' 
-                ) 
-            ) 
+                }'
+                )
+            )
             ]
         );
         
         $middleware->setClient(
             new Client(
-                [ 
-                'handler' => HandlerStack::create($mock) 
-                ] 
-            ) 
+                [
+                'handler' => HandlerStack::create($mock)
+                ]
+            )
         );
         
         $request = Request::create('http://example.com/admin', 'GET');
         $request->headers->set('Authorization', 'Bearer test123');
         
         $response = $middleware->handle(
-            $request, function () {
+            $request,
+            function () {
                 return true;
-            }, "dolphin" 
+            },
+            "dolphin"
         );
         
         $this->assertTrue($response);
@@ -135,12 +142,14 @@ class BasicTest extends TestCase
         $middleware = new \ArieTimmerman\Laravel\OAuth2\VerifyAccessToken();
         
         $mock = new MockHandler(
-            [ 
+            [
                 
             $this->getClientCredentialsTokenEndPoint(),
                 
             new Response(
-                200, [ ], Psr7\stream_for(
+                200,
+                [ ],
+                Utils::streamFor(
                     '{
                         "active": true,
                         "client_id": "l238j323ds-23ij4",
@@ -151,33 +160,30 @@ class BasicTest extends TestCase
                         "exp": 1419356238,
                         "iat": 1419350238,
                         "extension_field": "twenty-seven"
-                    }' 
-                ) 
-            ) 
+                    }'
+                )
+            )
             ]
         );
         
         $middleware->setClient(
             new Client(
-                [ 
-                'handler' => HandlerStack::create($mock) 
-                ] 
-            ) 
+                [
+                'handler' => HandlerStack::create($mock)
+                ]
+            )
         );
         
         $request = Request::create('http://example.com/admin', 'GET');
         $request->headers->set('Authorization', 'Bearer test123');
         
         $response = $middleware->handle(
-            $request, function () {
+            $request,
+            function () {
                 return true;
-            } 
+            }
         );
         
         $this->assertTrue($response);
     }
-    
 }
-            
-            
-            
