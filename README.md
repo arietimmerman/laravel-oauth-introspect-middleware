@@ -1,3 +1,6 @@
+![](https://github.com/arietimmerman/laravel-oauth-introspect-middleware/workflows/CI/badge.svg)
+[![Latest Stable Version](https://poser.pugx.org/arietimmerman/laravel-oauth-introspect-middleware/v/stable)](https://packagist.org/packages/arietimmerman/laravel-oauth-introspect-middleware)
+[![Total Downloads](https://poser.pugx.org/arietimmerman/laravel-oauth-introspect-middleware/downloads)](https://packagist.org/packages/arietimmerman/laravel-oauth-introspect-middleware)
 
 Especially for a microservices architecture, authentication and authorization functions should be delegated. Protecting resources is best done by implementing the web services as a pure OAuth2 resource server, relying on token verification on a remote authorization server.
 
