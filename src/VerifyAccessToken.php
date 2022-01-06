@@ -81,8 +81,8 @@ class VerifyAccessToken
                 [
                 'form_params' => [
                 'grant_type' => 'client_credentials',
-                'client_id' => config('authorizationserver.authorization_serverclient_id'),
-                'client_secret' => config('authorizationserver.authorization_serverclient_secret'),
+                'client_id' => config('authorizationserver.authorization_server_client_id'),
+                'client_secret' => config('authorizationserver.authorization_server_client_secret'),
                 'scope' => ''
                 ]
                 ]
